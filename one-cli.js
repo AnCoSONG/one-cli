@@ -7,12 +7,11 @@ const chalk = require("chalk");
 const { default: axios } = require("axios");
 const {readFileSync} = require('fs')
 const {resolve, isAbsolute} = require('path');
-require("dotenv").config({path: resolve(__dirname, '.env.local')})
+const dotenv = require("dotenv")
+dotenv.config({path: resolve(__dirname, '.env.local')})
+dotenv.config({path: resolve(__dirname, '.env')})
 program.version("0.0.1").usage('<command> [options]');
-// console.log(__dirname)
-// console.log(process.execPath)
-// console.log(process.env.URL)
-// console.log(process.cwd())
+
 //? one post <mode>
 // * mode=null -> 参数化提交
 // * mode=i -> 交互式提交
