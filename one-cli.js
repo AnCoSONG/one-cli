@@ -7,7 +7,7 @@ const chalk = require("chalk");
 const { default: axios } = require("axios");
 const {readFileSync} = require('fs')
 const {resolve, isAbsolute} = require('path');
-require("dotenv").config({path: resolve(__dirname, '.env')})
+require("dotenv").config({path: resolve(__dirname, '.env.local')})
 program.version("0.0.1").usage('<command> [options]');
 // console.log(__dirname)
 // console.log(process.execPath)
