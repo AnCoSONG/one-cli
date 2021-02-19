@@ -73,7 +73,7 @@ program
 
 program
   .command("delete <id>")
-  .description("delete a blog post with id")
+  .description("delete a blog post using id")
   .action(async (id) => {
     const spinner = ora("正在删除").start();
     try {
@@ -85,4 +85,48 @@ program
     }
   });
 
+program
+  .command('update <id>')
+  .description("update a blog post, options is optional")
+  .option("-t, --title <title>", "set title")
+  .option("-a, --author <author>", "set author name")
+  .option("-d, --date <date>", "set date")
+  .option("-p, --preface <preface>", "set the preface of each article")
+  .option(
+    "-m, --markdown <path-to-markdown>",
+    "tell me where is the markdown document"
+  )
+  .action(async (id, opts) => {
+    // console.log(opts)
+    if(Object.keys(opts).length===0){
+      console.error(chalk.red("没有任何参数"))
+      return
+    } else {
+      const spinner = ora('正在更新').start()
+      try {
+        const updateDTO = {}
+        if(opts.hasOwnProperty('title')) {
+          updateDTO.title = opts.title
+        }
+        if(opts.hasOwnProperty('author')) {
+          updateDTO.author = opts.author
+        }
+        if(opts.hasOwnProperty('date')) {
+          updateDTO.date = opts.date
+        }
+        if(opts.hasOwnProperty('preface')) {
+          updateDTO.preface = opts.preface
+        }
+        if(opts.hasOwnProperty('markdown')) {
+          updateDTO.content = readFileSync(resolve(process.cwd(), opts.markdown), {encoding:'utf-8'})
+        }
+        const result = await axios.put(`${process.env.URL}/article/${id}`, updateDTO);
+        spinner.succeed(`已上传 ID: ${result.data.id}`);
+      } catch(e) {
+        console.error(e)
+        spinner.fail("失败");
+      } 
+      
+    }
+  })
 program.parse(process.argv);
