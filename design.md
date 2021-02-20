@@ -1,3 +1,9 @@
+---
+Title: One-cli接口设计
+Author: Justin Bieber
+Date: Feb 20, 2021
+Preface: 简单总结One-cli的接口设计方案
+---
 # 接口设计
 
 ## 使用yaml header还是使用交互式/参数式的提交方式

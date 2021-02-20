@@ -5,12 +5,13 @@ const { postInteractively } = require("./lib/postInteractively");
 const ora = require("ora");
 const chalk = require("chalk");
 const { default: axios } = require("axios");
-const {readFileSync} = require('fs')
-const {resolve, isAbsolute} = require('path');
-const dotenv = require("dotenv")
-dotenv.config({path: resolve(__dirname, '.env.local')})
-dotenv.config({path: resolve(__dirname, '.env')})
-program.version("0.0.1").usage('<command> [options]');
+const { readFileSync } = require("fs");
+const { resolve, isAbsolute } = require("path");
+const dotenv = require("dotenv");
+dotenv.config({ path: resolve(__dirname, ".env.local") });
+dotenv.config({ path: resolve(__dirname, ".env") });
+
+program.version("0.0.1").usage("<command> [options]");
 
 //? one post <mode>
 // * mode=null -> 参数化提交
@@ -19,7 +20,7 @@ program
   .command("post <mode>")
   .usage("<mode> [options]")
 
-  .description("Post a md doc to blog. <mode> could be i or p.")
+  .description("Post a md doc to blog. <mode> could be i or p or e.")
   .option("-t, --title <title>", "set title")
   .option("-a, --author <author>", "set author name", "JinYu SONG")
   .option("-d, --date <date>", "set date", getFormatTodayStr())
@@ -31,8 +32,9 @@ program
   .action(async (mode, opts) => {
     // console.log(mode, opts);
     if (mode === "p") {
+      const spinner = ora({ text: "正在执行" }).start();
       if (
-        checkObjParameters(opts, [
+        !checkObjParameters(opts, [
           "title",
           "author",
           "date",
@@ -40,32 +42,76 @@ program
           "markdown",
         ])
       ) {
-        const spinner = ora({ text: "posting" }).start();
-        try {
-          let absolutePath = ''
-          if(isAbsolute(opts.markdown)) {
-            absolutePath = opts.markdown
-          } else {
-            absolutePath = resolve(process.cwd(), opts.markdown)
-          }
-          const content = readFileSync(absolutePath, {
-            encoding: "utf-8",
-          });
-          const result = await axios.post(`${process.env.URL}/article`, {
-            title: opts.title,
-            author: opts.author,
-            date: opts.date,
-            preface: opts.preface,
-            content,
-          });
-          spinner.succeed(`已上传 ID: ${result.data.id}`);
-        } catch (e) {
-          console.error(e);
-          spinner.fail("失败");
+        spinner.fail('参数检查不通过')
+        return
+      }
+      try {
+        spinner.text = '正在解析'
+        let absolutePath = "";
+        if (isAbsolute(opts.markdown)) {
+          absolutePath = opts.markdown;
+        } else {
+          absolutePath = resolve(process.cwd(), opts.markdown);
         }
+        const content = readFileSync(absolutePath, {
+          encoding: "utf-8",
+        });
+        spinner.text = '正在上传'
+        const result = await axios.post(`${process.env.URL}/article`, {
+          title: opts.title,
+          author: opts.author,
+          date: opts.date,
+          preface: opts.preface,
+          content,
+        });
+        spinner.succeed(`已上传 ID: ${result.data.id}`);
+      } catch (e) {
+        console.error(e);
+        spinner.fail("失败");
       }
     } else if (mode === "i") {
       await postInteractively(opts, process.cwd());
+    } else if (mode === "e") {
+      // e means embedded. 从markdown的yaml头提取信息
+      const spinner = ora({ text: "正在执行" }).start();
+      if (!opts.hasOwnProperty("markdown")) {
+        spinner.fail("请传入 -m 文件路径参数");
+        return;
+      }
+      const fm = require("front-matter");
+      try {
+        let absolutePath = "";
+        if (isAbsolute(opts.markdown)) {
+          absolutePath = opts.markdown;
+        } else {
+          absolutePath = resolve(process.cwd(), opts.markdown);
+        }
+        const content = readFileSync(absolutePath, {
+          encoding: "utf-8",
+        });
+        spinner.text = "正在解析"
+        fm_result = fm(content);
+        if (!checkObjParameters(fm_result.attributes, ["Title", "Preface"])) {
+          spinner.fail("YAML头必须包含Title和Preface参数");
+          return;
+        }
+        const createDto = {
+          title: fm_result.attributes["Title"],
+          author: fm_result.attributes.Author ?? "JinYu SONG",
+          date: fm_result.attributes.Date ?? getFormatTodayStr(),
+          preface: fm_result.attributes["Preface"],
+          content: fm_result.body,
+        };
+        spinner.text = "正在上传"
+        const result = await axios.post(
+          `${process.env.URL}/article`,
+          createDto
+        );
+        spinner.succeed(`已上传 ID: ${result.data.id}`);
+      } catch (e) {
+        console.error(e);
+        spinner.fail("失败");
+      }
     } else {
       throw new Error("mode 参数设置错误[i|p]");
     }
@@ -86,7 +132,7 @@ program
   });
 
 program
-  .command('update <id>')
+  .command("update <id>")
   .description("update a blog post, options is optional")
   .option("-t, --title <title>", "set title")
   .option("-a, --author <author>", "set author name")
@@ -98,35 +144,40 @@ program
   )
   .action(async (id, opts) => {
     // console.log(opts)
-    if(Object.keys(opts).length===0){
-      console.error(chalk.red("没有任何参数"))
-      return
+    if (Object.keys(opts).length === 0) {
+      console.error(chalk.red("没有任何参数"));
+      return;
     } else {
-      const spinner = ora('正在更新').start()
+      const spinner = ora("正在更新").start();
       try {
-        const updateDTO = {}
-        if(opts.hasOwnProperty('title')) {
-          updateDTO.title = opts.title
+        const updateDTO = {};
+        if (opts.hasOwnProperty("title")) {
+          updateDTO.title = opts.title;
         }
-        if(opts.hasOwnProperty('author')) {
-          updateDTO.author = opts.author
+        if (opts.hasOwnProperty("author")) {
+          updateDTO.author = opts.author;
         }
-        if(opts.hasOwnProperty('date')) {
-          updateDTO.date = opts.date
+        if (opts.hasOwnProperty("date")) {
+          updateDTO.date = opts.date;
         }
-        if(opts.hasOwnProperty('preface')) {
-          updateDTO.preface = opts.preface
+        if (opts.hasOwnProperty("preface")) {
+          updateDTO.preface = opts.preface;
         }
-        if(opts.hasOwnProperty('markdown')) {
-          updateDTO.content = readFileSync(resolve(process.cwd(), opts.markdown), {encoding:'utf-8'})
+        if (opts.hasOwnProperty("markdown")) {
+          updateDTO.content = readFileSync(
+            resolve(process.cwd(), opts.markdown),
+            { encoding: "utf-8" }
+          );
         }
-        const result = await axios.put(`${process.env.URL}/article/${id}`, updateDTO);
+        const result = await axios.put(
+          `${process.env.URL}/article/${id}`,
+          updateDTO
+        );
         spinner.succeed(`已上传 ID: ${result.data.id}`);
-      } catch(e) {
-        console.error(e)
+      } catch (e) {
+        console.error(e);
         spinner.fail("失败");
-      } 
-      
+      }
     }
-  })
+  });
 program.parse(process.argv);
