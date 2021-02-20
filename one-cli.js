@@ -57,14 +57,18 @@ program
           encoding: "utf-8",
         });
         spinner.text = '正在上传'
-        const result = await axios.post(`${process.env.URL}/article`, {
+        const result = (await axios.post(`${process.env.URL}/article`, {
           title: opts.title,
           author: opts.author,
           date: opts.date,
           preface: opts.preface,
           content,
-        });
-        spinner.succeed(`已上传 ID: ${result.data.id}`);
+        })).data;
+        if(result.success) {
+          spinner.succeed(`已上传 ID: ${result.id}`);
+        } else {
+          spinner.fail('上传失败 请检查上传参数')
+        }
       } catch (e) {
         console.error(e);
         spinner.fail("失败");
@@ -103,14 +107,17 @@ program
           content: fm_result.body,
         };
         spinner.text = "正在上传"
-        const result = await axios.post(
+        const result = (await axios.post(
           `${process.env.URL}/article`,
           createDto
-        );
-        spinner.succeed(`已上传 ID: ${result.data.id}`);
+        )).data;
+        if(result.success) {
+          spinner.succeed(`已上传 ID: ${result.id}`);
+        } else {
+          spinner.fail('上传失败 请检查上传参数')
+        }
       } catch (e) {
-        console.error(e);
-        spinner.fail("失败");
+        spinner.fail("上传失败 " + e.message);
       }
     } else {
       throw new Error("mode 参数设置错误[i|p]");
@@ -124,16 +131,20 @@ program
     const spinner = ora("正在删除").start();
     try {
       const res = (await axios.delete(`${process.env.URL}/article/${id}`)).data;
-      spinner.succeed(`已删除 ID:${res._id}`);
+      if (res.success) {
+        spinner.succeed(`已删除 ID:${res.id}`);
+      } else {
+        spinner.fail('删除失败 ' + res.error_msg)
+      }
     } catch (e) {
-      console.error(e);
-      spinner.fail("删除失败");
+      spinner.fail("删除失败 "+ e.message);
     }
   });
 
 program
   .command("update <id>")
   .description("update a blog post, options is optional")
+  .option("-y, --yaml", "use yaml")
   .option("-t, --title <title>", "set title")
   .option("-a, --author <author>", "set author name")
   .option("-d, --date <date>", "set date")
@@ -144,13 +155,14 @@ program
   )
   .action(async (id, opts) => {
     // console.log(opts)
+    const spinner = ora("正在执行").start();
     if (Object.keys(opts).length === 0) {
-      console.error(chalk.red("没有任何参数"));
+      spinner.fail('没有提供任何参数')
       return;
     } else {
-      const spinner = ora("正在更新").start();
       try {
         const updateDTO = {};
+        spinner.text = "正在解析"
         if (opts.hasOwnProperty("title")) {
           updateDTO.title = opts.title;
         }
@@ -168,15 +180,37 @@ program
             resolve(process.cwd(), opts.markdown),
             { encoding: "utf-8" }
           );
+          if (opts.hasOwnProperty('yaml')) {
+            // 启用yaml会自动覆盖之前的
+            const fm = require("front-matter");
+            const fm_result = fm(updateDTO.content)
+            if (!checkObjParameters(fm_result.attributes, ['Title', 'Preface'])) {
+              spinner.fail("YAML HEADER必须拥有Title和Preface属性")
+              return
+            }
+            updateDTO.title = fm_result.attributes.Title
+            if (fm_result.attributes.Author) {
+              updateDTO.author = fm_result.attributes.Author
+            }
+            if (fm_result.attributes.Date) {
+              updateDTO.date = fm_result.attributes.Date
+            }
+            updateDTO.preface = fm_result.attributes.Preface
+            updateDTO.content = fm_result.body
+          }
         }
-        const result = await axios.put(
+        // console.log(id, opts, updateDTO)
+        const result = (await axios.put(
           `${process.env.URL}/article/${id}`,
           updateDTO
-        );
-        spinner.succeed(`已上传 ID: ${result.data.id}`);
+        )).data;
+        if (result.success) {
+          spinner.succeed(`已更新 ID: ${result.id}`);
+        } else {
+          spinner.fail(`更新失败，请检查ID是否正确`)
+        }
       } catch (e) {
-        console.error(e);
-        spinner.fail("失败");
+        spinner.fail("更新失败 " + e.message);
       }
     }
   });
