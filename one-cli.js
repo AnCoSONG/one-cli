@@ -140,6 +140,30 @@ program.
     await require('./lib/post')(opts)
   })
 
+
+program
+  .command("newdelete <id>")
+  .description("delete a blog post using id")
+  .action(async (id) => {
+    await require('./lib/delete')(id)
+  });
+
+  program
+  .command("newupdate <id>")
+  .description("update a blog post, options is optional")
+  .option("-y, --yaml", "use yaml")
+  .option("-t, --title <title>", "set title")
+  .option("-a, --author <author>", "set author name")
+  .option("-d, --date <date>", "set date")
+  .option("-p, --preface <preface>", "set the preface of each article")
+  .option(
+    "-m, --markdown <path-to-markdown>",
+    "tell me where is the markdown document"
+  )
+  .action(async (id, opts) => {
+    await require('./lib/update')(id, opts)
+  });
+
 program
   .command("delete <id>")
   .description("delete a blog post using id")

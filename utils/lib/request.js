@@ -21,4 +21,5 @@ exports.deleteBlog = async function(id) {
 exports.updateBlog = async function(id, updateDTO) {
     checkProcessEnv()
     const result = (await axios.put(`${process.env.URL}/article/${id}`, updateDTO)).data
+    return result
 }
