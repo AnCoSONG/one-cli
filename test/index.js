@@ -1,13 +1,21 @@
-const ora = require('ora')
-
-const spinner = ora('test').start()
-
+const { logWithSpinner, failSpinner, warnSpinner, succeedSpinner, infoSpinner } = require('../utils/lib/spinner')
+const utils = require('../utils')
+// console.log(utils)
 setTimeout(() => {
-    spinner.info('info')
+    logWithSpinner('正在执行')
 }, 2000)
 setTimeout(() => {
-    spinner.warn('warn')
+    logWithSpinner('正在解析')
 }, 4000)
+
 setTimeout(() => {
-    spinner.succeed('succeed')
+    infoSpinner('解析成功')
 }, 6000)
+
+setTimeout(() => {
+    failSpinner('开始执行')
+}, 8000)
+
+setTimeout(() => {
+    warnSpinner('执行失败')
+}, 10000)

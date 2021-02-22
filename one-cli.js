@@ -124,6 +124,22 @@ program
     }
   });
 
+program.
+  command('newpost')
+  .usage('[options]')
+  .description('Post a markdown doc to blog.')
+  .option("-t, --title <title>", "set title")
+  .option("-a, --author <author>", "set author name", "JinYu SONG")
+  .option("-d, --date <date>", "set date", getFormatTodayStr())
+  .option("-p, --preface <preface>", "set the preface of each article")
+  .option(
+    "-m, --markdown <path-to-markdown>",
+    "tell me where is the markdown document"
+  )
+  .action(async (opts) => {
+    await require('./lib/post')(opts)
+  })
+
 program
   .command("delete <id>")
   .description("delete a blog post using id")

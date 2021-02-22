@@ -1,0 +1,1 @@
+exports.modes = ['通过参数设置元信息', '通过问答设置元信息', '通过YAML Header提取元信息']
