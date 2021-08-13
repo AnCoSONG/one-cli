@@ -1,6 +1,8 @@
-# One cli
+# @anco/one-cli
  
-This repo provide some blog operations based on commanders and inquirer. 
+Attention:This project is private! Some key env information is not uploaded, therefore you cannot use this app.
+
+The repo provides some blog operations based on commanders and inquirer. 
 
 ## Usage
 ```shell
