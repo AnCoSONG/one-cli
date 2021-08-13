@@ -25,3 +25,6 @@ Preface: 简单总结One-cli的接口设计方案
 
 - [ ] YAML HEADER
 - [ ] fix Markdown path error
+- [ ] 使用问答式重写post接口
+- [ ] 加入鉴权
+- [ ] update交互改进

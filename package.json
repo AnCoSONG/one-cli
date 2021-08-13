@@ -1,5 +1,5 @@
 {
-  "name": "one-cli",
+  "name": "@anco/one-cli",
   "version": "1.0.0",
   "description": "A private cli for blog management.",
   "main": "index.js",
