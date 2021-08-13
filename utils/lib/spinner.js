@@ -33,3 +33,13 @@ exports.failSpinner = function(text) {
     prevMsg = null
     spinner.fail(text)
 }
+
+exports.stopSpinner = function() {
+    if(prevMsg) {
+        spinner.stopAndPersist({
+            text: prevMsg,
+            symbol: chalk.green('✔')
+        })
+    }
+    prevMsg = null
+}

@@ -1,7 +1,7 @@
 {
   "name": "one-cli",
   "version": "1.0.0",
-  "description": "",
+  "description": "A private cli for blog management.",
   "main": "index.js",
   "bin": {
     "one-cli": "./one-cli.js"
