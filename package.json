@@ -1,6 +1,6 @@
 {
   "name": "@anco/one-cli",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A private cli for blog management.",
   "main": "index.js",
   "bin": {
